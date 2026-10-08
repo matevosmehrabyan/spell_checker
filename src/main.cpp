@@ -22,6 +22,7 @@ class InputParser {
     std::vector<std::string> dictionary;
     std::vector<std::string> text_lines;
     static constexpr std::string_view section_separator = "===";
+    static constexpr std::size_t max_word_size = 50;
 
 public:
     bool parse(std::istream& input) {
@@ -30,63 +31,71 @@ public:
         bool found_separator{false};
 
         while (std::getline(input, line)) {
-            std::size_t words_count{0};
             std::stringstream ss(line);
             std::string cur_word;
 
             while (ss >> cur_word) {
                 if (cur_word == section_separator) {
+                    if (line.size() != section_separator.size()) {
+                        std::cerr << "Parsing failed! The line should contain "
+                                  << "only the section separator" << std::endl;
+                        return false;
+                    }
                     found_separator = true;
-                } else if (!is_word(cur_word)) {
+                    break;
+                } else if (cur_word.size() > max_word_size || !is_word(cur_word)) {
                     std::cerr << "Parsing failed! The input contains invalid input word '"
                               << cur_word << "'" << std::endl;
                     return false;
                 }
 
                 dict_words.push_back(std::move(cur_word));
-                ++words_count;
             }
 
             if (found_separator) {
-                if (words_count != 1) {
-                    std::cerr << "Invalid input file format. The section separation line "
-                              << "should contain only the separator" << std::endl;
-                    return false;
-                }
                 break;
             }
+
+        }
+
+        if (!found_separator) {
+            std::cerr << "Section separator after dictionary words was not found!" << std::endl;
+            return false;
         }
 
         found_separator = false;
         std::vector<std::string> parsed_text_lines;
 
         while (std::getline(input, line)) {
-            std::size_t words_count{0};
             std::stringstream ss(line);
             std::string cur_word;
 
             while (ss >> cur_word) {
                 if (cur_word == section_separator) {
+                    if (line.size() != section_separator.size()) {
+                        std::cerr << "Parsing failed! The line should contain "
+                                  << "only the section separator" << std::endl;
+                        return false;
+                    }
                     found_separator = true;
-                } else if (!is_word(cur_word)) {
+                } else if (cur_word.size() > max_word_size || !is_word(cur_word)) {
                     std::cerr << "Parsing failed! The input contains invalid input word '"
                               << cur_word << "'" << std::endl;
                     return false;
                 }
 
-                ++words_count;
             }
 
             if (found_separator) {
-                if (words_count != 1) {
-                    std::cerr << "Invalid input file format. The section separation line "
-                              << "should contain only the separator" << std::endl;
-                    return false;
-                }
                 break;
             }
 
             parsed_text_lines.push_back(std::move(line));
+        }
+
+        if (!found_separator) {
+            std::cerr << "Section separator after text words was not found!" << std::endl;
+            return false;
         }
 
         dictionary = std::move(dict_words);
