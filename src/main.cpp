@@ -20,7 +20,7 @@ bool is_word(const std::string& word) {
 
 class InputParser {
     std::vector<std::string> dictionary;
-    std::vector<std::string> text_words;
+    std::vector<std::string> text_lines;
     static constexpr std::string_view section_separator = "===";
 
 public:
@@ -30,7 +30,7 @@ public:
         bool found_separator{false};
 
         while (std::getline(input, line)) {
-            std::vector<std::string> words_in_line;
+            std::size_t words_count{0};
             std::stringstream ss(line);
             std::string cur_word;
 
@@ -43,25 +43,22 @@ public:
                     return false;
                 }
 
-                words_in_line.push_back(std::move(cur_word));
+                dict_words.push_back(std::move(cur_word));
+                ++words_count;
             }
 
             if (found_separator) {
-                if (words_in_line.size() != 1) {
+                if (words_count != 1) {
                     std::cerr << "Invalid input file format. The section separation line "
                               << "should contain only the separator" << std::endl;
                     return false;
                 }
                 break;
             }
-
-            dict_words.insert(dict_words.end(),
-                              std::make_move_iterator(words_in_line.begin()),
-                              std::make_move_iterator(words_in_line.end()));
         }
 
         found_separator = false;
-        std::vector<std::string> text_lines;
+        std::vector<std::string> parsed_text_lines;
 
         while (std::getline(input, line)) {
             std::size_t words_count{0};
@@ -89,8 +86,11 @@ public:
                 break;
             }
 
-            text_lines.push_back(std::move(line));
+            parsed_text_lines.push_back(std::move(line));
         }
+
+        dictionary = std::move(dict_words);
+        text_lines = std::move(parsed_text_lines);
 
         return true;
     }
