@@ -14,4 +14,4 @@ target_include_directories(spell_checker PRIVATE
     ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_features(spell_checker PRIVATE cxx_std_17)
+target_compile_features(spell_checker PRIVATE cxx_std_20)

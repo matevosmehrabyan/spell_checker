@@ -25,7 +25,7 @@ class InputParser {
     std::vector<std::string> dictionary;
     std::vector<std::string> text_lines;
 
-    bool parse_dictionary(std::istream& input, std::vector<std::string>& dest) {
+    bool parse_section(std::istream& input, std::vector<std::string>& dest, auto handle_line) {
         std::string line;
         bool found_separator{false};
 
@@ -42,60 +42,19 @@ class InputParser {
                     }
                     found_separator = true;
                     break;
+
                 } else if (cur_word.size() > max_word_size || !is_word(cur_word)) {
                     std::cerr << "Parsing failed! The input contains invalid input word '"
                               << cur_word << "'" << std::endl;
                     return false;
                 }
-
-                dest.push_back(std::move(cur_word));
             }
 
             if (found_separator) {
                 break;
             }
 
-        }
-
-        if (!found_separator) {
-            std::cerr << "Section separator was not found!" << std::endl;
-            return false;
-        }
-
-        return true;
-    }
-
-    bool parse_text(std::istream& input, std::vector<std::string>& dest) {
-        std::string line;
-        bool found_separator{false};
-
-        while (std::getline(input, line)) {
-            std::stringstream ss(line);
-            std::string cur_word;
-
-            while (ss >> cur_word) {
-                if (cur_word == section_separator) {
-                    if (line.size() != section_separator.size()) {
-                        std::cerr << "Parsing failed! The line should contain "
-                                  << "only the section separator" << std::endl;
-                        return false;
-                    }
-                    found_separator = true;
-                    break;
-                } else if (cur_word.size() > max_word_size || !is_word(cur_word)) {
-                    std::cerr << "Parsing failed! The input contains invalid input word '"
-                              << cur_word << "'" << std::endl;
-                    return false;
-                }
-
-            }
-
-            if (found_separator) {
-                break;
-            }
-
-            dest.push_back(std::move(line));
-
+            handle_line(std::move(line), dest);
         }
 
         if (!found_separator) {
@@ -110,12 +69,24 @@ class InputParser {
 public:
     bool parse(std::istream& input) {
         std::vector<std::string> dict_words;
-        if (!parse_dictionary(input, dict_words)) {
+        if (!parse_section(input, dict_words,
+                           [](std::string&& line, std::vector<std::string>& dest) {
+                               std::stringstream ss(std::move(line));
+                               std::string cur_word;
+                               while (ss >> cur_word) {
+                                   dest.push_back(std::move(cur_word));
+                               }
+                        }))
+        {
             return false;
         }
 
         std::vector<std::string> parsed_text_lines;
-        if (!parse_text(input, parsed_text_lines)) {
+        if (!parse_section(input, parsed_text_lines,
+                           [](std::string&& line, std::vector<std::string>& dest) {
+                               dest.push_back(std::move(line));
+                           }))
+        {
             return false;
         }
 
