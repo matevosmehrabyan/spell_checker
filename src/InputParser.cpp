@@ -3,16 +3,10 @@
 #include <cctype>
 
 #include "InputParser.h"
+#include "utils.h"
 
 
-bool is_word(const std::string& word) {
-    return !word.empty() && std::all_of(word.begin(), word.end(), [](unsigned char c) {
-                return std::isalpha(c);
-            });
-}
-
-
-bool InputParser::parse_dictionary(std::istream& input, std::vector<std::string>& dest) {
+bool InputParser::parse_dictionary(std::istream& input, Dictionary& dest) {
     std::string line;
 
     while (std::getline(input, line)) {
@@ -34,7 +28,7 @@ bool InputParser::parse_dictionary(std::istream& input, std::vector<std::string>
                 return false;
             }
 
-            dest.push_back(std::move(cur_word));
+            dest.add(std::move(cur_word));
         }
 
     }
@@ -117,7 +111,7 @@ bool InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) {
 
 
 bool InputParser::parse(std::istream& input) {
-    std::vector<std::string> dict_words;
+    Dictionary dict_words;
     if (!parse_dictionary(input, dict_words)) {
         return false;
     }
@@ -134,7 +128,7 @@ bool InputParser::parse(std::istream& input) {
 }
 
 
-const std::vector<std::string>& InputParser::get_dictionary() const {
+const Dictionary& InputParser::get_dictionary() const {
     return dictionary;
 }
 
