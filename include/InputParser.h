@@ -10,26 +10,6 @@
 #include "Dictionary.h"
 
 
-enum class ChunkType {
-    WS,
-    WORD
-};
-
-
-struct Chunk {
-    std::string content;
-    ChunkType type;
-
-    Chunk(const std::string& content, ChunkType type): content(content), type(type) {}
-    
-    Chunk(const Chunk&) = default;
-    Chunk& operator=(const Chunk&) = default;
-
-    Chunk(Chunk&&) = default;
-    Chunk& operator=(Chunk&&) = default;
-};
-
-
 class InputParser {
     static constexpr std::string_view section_separator = "===";
     static constexpr std::size_t max_word_size = 50;

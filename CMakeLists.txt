@@ -5,7 +5,7 @@ project(SpellChecker LANGUAGES CXX)
 add_executable(spell_checker
     src/main.cpp
     src/InputParser.cpp
-    src/SpellCheck.cpp
+    src/SpellChecker.cpp
     src/Dictionary.cpp
     src/utils.cpp
 )

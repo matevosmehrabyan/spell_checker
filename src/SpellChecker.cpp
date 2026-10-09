@@ -1,22 +1,13 @@
 #include <vector>
 #include <string>
 
-#include "InputParser.h"
+#include "SpellChecker.h"
 #include "utils.h"
 
 
-enum class State {
-    MATCH,
-    INSERT,
-    DELETE
-};
 
-
-constexpr size_t max_allowed_edits = 2;
-
-
-bool edit(const std::string& w1, size_t pos1, const std::string& w2, size_t pos2,
-          State prev, size_t edits_allowed) {
+bool SpellChecker::edit(const std::string& w1, size_t pos1, const std::string& w2, size_t pos2,
+                        State prev, size_t edits_allowed) {
 
     while (pos1 < w1.size() && pos2 < w2.size()) {
         if (w1[pos1] != w2[pos2]) {
@@ -52,13 +43,14 @@ bool edit(const std::string& w1, size_t pos1, const std::string& w2, size_t pos2
 }
 
 
-bool can_be_fixed(const std::string& word_1, const std::string& word_2, size_t allowed_edits) {
+bool SpellChecker::can_be_fixed(const std::string& word_1, const std::string& word_2,
+                                size_t allowed_edits) {
     return edit(word_1, 0, word_2, 0, State::MATCH, allowed_edits);
 }
 
 
-std::vector<std::string> get_corrections(const std::string& word,
-                                         const Dictionary& dictionary) {
+std::vector<std::string> SpellChecker::get_corrections(const std::string& word,
+                                                       const Dictionary& dictionary) {
     std::vector<std::string> corrections;
     auto word_size = word.size();
 
@@ -84,7 +76,7 @@ std::vector<std::string> get_corrections(const std::string& word,
 }
 
 
-std::string spell_check(const Dictionary& dictionary, const std::vector<Chunk>& text_lines) {
+std::string SpellChecker::spell_check(const std::vector<Chunk>& text_lines) {
 
     std::string final_output;
 

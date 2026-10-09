@@ -6,6 +6,26 @@
 #include <unordered_map>
 
 
+enum class ChunkType {
+    WS,
+    WORD
+};
+
+
+struct Chunk {
+    std::string content;
+    ChunkType type;
+
+    Chunk(const std::string& content, ChunkType type): content(content), type(type) {}
+
+    Chunk(const Chunk&) = default;
+    Chunk& operator=(const Chunk&) = default;
+
+    Chunk(Chunk&&) = default;
+    Chunk& operator=(Chunk&&) = default;
+};
+
+
 class Dictionary {
     std::vector<std::string> lowered_words;
     std::unordered_map<std::string, std::string> lowered_to_orig;
