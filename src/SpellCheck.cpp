@@ -1,6 +1,5 @@
 #include <vector>
 #include <string>
-#include <sstream>
 
 #include "InputParser.h"
 #include "utils.h"
@@ -53,8 +52,8 @@ bool edit(const std::string& w1, size_t pos1, const std::string& w2, size_t pos2
 }
 
 
-bool can_be_fixed(const std::string& word_1, const std::string& word_2) {
-    return edit(word_1, 0, word_2, 0, State::MATCH, 2);
+bool can_be_fixed(const std::string& word_1, const std::string& word_2, size_t allowed_edits) {
+    return edit(word_1, 0, word_2, 0, State::MATCH, allowed_edits);
 }
 
 
@@ -63,17 +62,21 @@ std::vector<std::string> get_corrections(const std::string& word,
     std::vector<std::string> corrections;
     auto word_size = word.size();
 
-    for (const auto& dict_word : dictionary) {
-        auto dict_word_size = dict_word.size();
+    auto is_good_candidate = [&word_size](const std::string& candidate, size_t edit_count) {
+        auto candidate_word_size = candidate.size();
+        auto diff = (word_size > candidate_word_size) ? (word_size - candidate_word_size)
+                                                      : (candidate_word_size - word_size);
+        return diff <= edit_count;
+    };
 
-        auto diff = (word_size > dict_word_size) ? (word_size - dict_word_size)
-                                                 : (dict_word_size - word_size);
-        if (diff > max_allowed_edits) {
-            continue;
+    for (size_t i = 1; i <= max_allowed_edits; ++i) { // could make one-pass, but code would get messy
+        for (const auto& dict_word : dictionary) {
+            if (is_good_candidate(dict_word, i) && can_be_fixed(word, dict_word, i)) {
+                corrections.push_back(dictionary.get(dict_word));
+            }
         }
-
-        if (can_be_fixed(word, dict_word)) {
-            corrections.push_back(dictionary.get(dict_word));
+        if (!corrections.empty()) {
+            break;
         }
     }
 
@@ -110,8 +113,9 @@ std::string spell_check(const Dictionary& dictionary, const std::vector<Chunk>& 
                 if (i != corrections.size() - 1) {
                     final_output += " ";
                 }
-                final_output += "}";
             }
+            final_output += "}";
+            continue;
         }
         
         final_output += corrections[0];
