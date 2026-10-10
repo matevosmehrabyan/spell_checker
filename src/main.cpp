@@ -3,11 +3,16 @@
 #include <string>
 
 #include "InputParser.h"
+#include "SpellChecker.h"
 
 
-int main() {
-    std::string input_file_path("input.txt");
-    std::ifstream input_file(input_file_path.c_str());
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <filepath>\n";
+        return 1;
+    }
+
+    std::ifstream input_file(argv[1]);
 
     if (!input_file) {
         std::cerr << "Failed to open input file!" << std::endl;
@@ -18,7 +23,9 @@ int main() {
 
     try {
         if (parser.parse(input_file)) {
-            std::cout << "Parse successful!" << std::endl;
+            SpellChecker spell_checker{parser.get_dictionary()};
+            auto corrected_text = spell_checker.spell_check(parser.get_text());
+            std::cout << corrected_text << std::endl;
         } else {
             std::cerr << "Parsing failed. Please, check if the input file is in valid format." << std::endl;
             return 1;
