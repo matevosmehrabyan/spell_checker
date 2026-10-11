@@ -11,6 +11,12 @@
 
 
 class InputParser {
+public:
+    bool parse(std::istream& input);
+    const Dictionary& get_dictionary() const;
+    const std::vector<Chunk>& get_text() const;
+
+private:
     static constexpr std::string_view section_separator = "===";
     static constexpr std::size_t max_word_size = 50;
 
@@ -19,11 +25,6 @@ class InputParser {
 
     bool parse_dictionary(std::istream& input, Dictionary& dest);
     bool parse_text(std::istream& input, std::vector<Chunk>& dest);
-
-public:
-    bool parse(std::istream& input);
-    const Dictionary& get_dictionary() const;
-    const std::vector<Chunk>& get_text() const;
 };
 
 
