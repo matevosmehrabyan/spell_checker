@@ -19,8 +19,8 @@ bool Dictionary::add(const std::string& elem) {
         return false;
     }
 
-    lowered_to_orig[std::move(lowered)] = elem;
-    lowered_words.push_back(elem);
+    lowered_to_orig[lowered] = elem;
+    lowered_words.push_back(std::move(lowered));
     return true;
 }
 
@@ -32,8 +32,8 @@ bool Dictionary::add(std::string&& elem) {
         return false;
     }
 
-    lowered_to_orig[std::move(lowered)] = elem;
-    lowered_words.push_back(std::move(elem));
+    lowered_to_orig[lowered] = std::move(elem);
+    lowered_words.push_back(std::move(lowered));
     return true;
 }
 
