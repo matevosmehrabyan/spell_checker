@@ -136,29 +136,28 @@ int main() {
           "empty text produces empty output",
           failures);
 
-    // Duplicate policy: both normalized entries remain in dictionary order,
-    // while the lookup map retains the first original spelling.
+    // Duplicate policy: case-insensitive duplicates are stored only once,
+    // retaining the first spelling.
     {
-        Dictionary dictionary;
-        dictionary.add("Apple");
-        dictionary.add("APPLE");
+    Dictionary dictionary;
+    dictionary.add("Apple");
+    dictionary.add("APPLE");
 
-        check(dictionary.contains("apple"),
-              "dictionary lookup is case-insensitive",
-              failures);
+    check(dictionary.contains("apple"),
+          "dictionary lookup is case-insensitive",
+          failures);
 
-        check(dictionary.get("apple") == "Apple",
-              "duplicate normalized key retains first original spelling",
-              failures);
+    check(dictionary.get("apple") == "Apple",
+          "duplicate normalized key retains first original spelling",
+          failures);
 
-        check(std::distance(dictionary.begin(), dictionary.end()) == 2,
-              "duplicate dictionary entries remain in iteration order",
-              failures);
+    check(std::distance(dictionary.begin(), dictionary.end()) == 1,
+          "case-insensitive duplicate is stored only once",
+          failures);
     }
 
-    check(run_spell_checker({"Apple", "APPLE"}, {word_chunk("appl")})
-              == "{Apple Apple}",
-          "duplicate normalized entries produce duplicate suggestions in order",
+    check(run_spell_checker({"Apple", "APPLE"}, {word_chunk("appl")}) == "Apple",
+          "duplicate normalized entries produce only one suggestion",
           failures);
 
     // A correction requiring two edits must not displace a one-edit correction.

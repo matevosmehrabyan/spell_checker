@@ -9,17 +9,12 @@ bool SpellChecker::can_transform_from(const std::string& text_word, std::size_t 
                                       const std::string& dict_word, std::size_t pos2,
                                       State prev, std::size_t edits_allowed) {
 
-    while (pos1 < text_word.size() && pos2 < dict_word.size()) {
-        if (text_word[pos1] != dict_word[pos2]) {
-            break;
-        }
-
-        ++pos1;
-        ++pos2;
-        prev = State::MATCH;
+    if (pos1 == text_word.size() && pos2 == dict_word.size()) {
+        return true;
     }
 
-    if (pos1 == text_word.size() && pos2 == dict_word.size()) {
+    if (pos1 < text_word.size() && pos2 < dict_word.size() && text_word[pos1] == dict_word[pos2]
+        && can_transform_from(text_word, pos1 + 1, dict_word, pos2 + 1, State::MATCH, edits_allowed)) {
         return true;
     }
 
