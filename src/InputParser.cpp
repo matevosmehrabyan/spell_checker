@@ -1,12 +1,23 @@
+#include <cctype>
+#include <format>
 #include <sstream>
 #include <algorithm>
-#include <cctype>
+#include <stdexcept>
 
 #include "InputParser.h"
+#include "ErrorMessages.h"
 #include "utils.h"
 
 
-bool InputParser::parse_dictionary(std::istream& input, Dictionary& dest) {
+void InputParser::validate_word(const std::string& word) const {
+    if (word.size() > max_word_size) {
+        throw std::runtime_error(std::format("{}: '{}'", err_msg::large_word, word));
+    } else if (!is_word(word)) {
+        throw std::runtime_error(std::format("{}: '{}'", err_msg::invalid_word, word));
+    }
+}
+
+void InputParser::parse_dictionary(std::istream& input, Dictionary& dest) const {
     std::string line;
 
     while (std::getline(input, line)) {
@@ -16,28 +27,21 @@ bool InputParser::parse_dictionary(std::istream& input, Dictionary& dest) {
         while (ss >> cur_word) {
             if (cur_word == section_separator) {
                 if (line.size() != section_separator.size()) {
-                    std::cerr << "Parsing failed! The line should contain "
-                              << "only the section separator" << std::endl;
-                    return false;
+                    throw std::runtime_error(err_msg::invalid_separator);
                 }
-                return true;
+                return;
 
-            } else if (cur_word.size() > max_word_size || !is_word(cur_word)) {
-                std::cerr << "Parsing failed! The input contains invalid input word '"
-                          << cur_word << "'" << std::endl;
-                return false;
             }
 
+            validate_word(cur_word);
             dest.add(std::move(cur_word));
         }
-
     }
 
-    std::cerr << "Section separator was not found!" << std::endl;
-    return false;
+    throw std::runtime_error(err_msg::separator_not_found);
 }
 
-bool InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) {
+void InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) const {
     std::string line;
     bool is_first_line{true};
 
@@ -57,13 +61,11 @@ bool InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) {
         bool chunk_is_ws = std::isspace(static_cast<unsigned char>(line[0]));
 
         auto append_chunk = [&](std::string& str, bool is_ws) {
-            if (!is_ws && (str.size() > max_word_size || !is_word(str))) {
-                    std::cerr << "Invalid input word '" << str << "'" << std::endl;
-                    return false;
-                }
+            if (!is_ws) {
+                validate_word(str);
+            }
 
-                dest.emplace_back(std::move(str), is_ws ? ChunkType::WS : ChunkType::WORD);
-                return true;
+            dest.emplace_back(std::move(str), is_ws ? ChunkType::WS : ChunkType::WORD);
         };
 
         for (size_t i = 0; i < line.size(); ++i) {
@@ -72,15 +74,10 @@ bool InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) {
 
                 auto chunk = line.substr(chunk_start, i - chunk_start);
                 if (chunk == section_separator) {
-                    std::cerr << "Parsing failed! The line should contain "
-                              << "only the section separator" << std::endl;
-                    return false;
+                    throw std::runtime_error(err_msg::invalid_separator);
                 }
 
-                if (!append_chunk(chunk, chunk_is_ws)) {
-                    return false;
-                }
-
+                append_chunk(chunk, chunk_is_ws);
                 chunk_start = i;
                 chunk_is_ws = cur_is_ws;
             }
@@ -89,42 +86,30 @@ bool InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) {
                 auto chunk = line.substr(chunk_start);
                 if (chunk == section_separator) {
                     if (line.size() != section_separator.size()) {
-                        std::cerr << "Parsing failed! The line should contain "
-                                  << "only the section separator" << std::endl;
-                        return false;
+                        throw std::runtime_error(err_msg::invalid_separator);
                     }
                     
-                    return true;
+                    return;
                 }
 
-                if (!append_chunk(chunk, chunk_is_ws)) {
-                    return false;
-                }
-
+                append_chunk(chunk, chunk_is_ws);
             }
         }
     }
 
-    std::cerr << "Section separator was not found!" << std::endl;
-    return false;
+    throw std::runtime_error(err_msg::separator_not_found);
 }
 
 
-bool InputParser::parse(std::istream& input) {
+void InputParser::parse(std::istream& input) {
     Dictionary dict_words;
-    if (!parse_dictionary(input, dict_words)) {
-        return false;
-    }
+    parse_dictionary(input, dict_words);
 
     std::vector<Chunk> parsed_text_lines;
-    if (!parse_text(input, parsed_text_lines)) {
-        return false;
-    }
+    parse_text(input, parsed_text_lines);
 
     dictionary = std::move(dict_words);
     text_lines = std::move(parsed_text_lines);
-
-    return true;
 }
 
 

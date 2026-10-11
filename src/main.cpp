@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <stdexcept>
 
 #include "InputParser.h"
 #include "SpellChecker.h"
@@ -22,16 +23,13 @@ int main(int argc, char* argv[]) {
     InputParser parser;
 
     try {
-        if (parser.parse(input_file)) {
-            SpellChecker spell_checker{parser.get_dictionary()};
-            auto corrected_text = spell_checker.spell_check(parser.get_text());
-            std::cout << corrected_text << std::endl;
-        } else {
-            std::cerr << "Parsing failed. Please, check if the input file is in valid format." << std::endl;
-            return 1;
-        }
-    } catch (...) {
-        std::cerr << "Something unexpected happened!" << std::endl;
+        parser.parse(input_file);
+        SpellChecker spell_checker;
+        auto corrected_text = spell_checker.spell_check(parser.get_dictionary(), parser.get_text());
+        std::cout << corrected_text << std::endl;
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
 

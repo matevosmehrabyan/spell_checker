@@ -12,7 +12,7 @@
 
 class InputParser {
 public:
-    bool parse(std::istream& input);
+    void parse(std::istream& input);
     const Dictionary& get_dictionary() const;
     const std::vector<Chunk>& get_text() const;
 
@@ -23,8 +23,10 @@ private:
     Dictionary dictionary;
     std::vector<Chunk> text_lines;
 
-    bool parse_dictionary(std::istream& input, Dictionary& dest);
-    bool parse_text(std::istream& input, std::vector<Chunk>& dest);
+    void validate_word(const std::string& word) const;
+
+    void parse_dictionary(std::istream& input, Dictionary& dest) const;
+    void parse_text(std::istream& input, std::vector<Chunk>& dest) const;
 };
 
 

@@ -14,15 +14,7 @@ enum class ChunkType {
 
 struct Chunk {
     std::string content;
-    ChunkType type;
-
-    Chunk(const std::string& content, ChunkType type): content(content), type(type) {}
-
-    Chunk(const Chunk&) = default;
-    Chunk& operator=(const Chunk&) = default;
-
-    Chunk(Chunk&&) = default;
-    Chunk& operator=(Chunk&&) = default;
+    ChunkType type{ChunkType::WS};
 };
 
 

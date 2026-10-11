@@ -9,15 +9,7 @@
 
 class SpellChecker {
 public:
-    explicit SpellChecker(const Dictionary& dict): dictionary(dict){}
-    
-    SpellChecker(const SpellChecker&) = default;
-    SpellChecker& operator=(const SpellChecker&) = default;
-
-    SpellChecker(SpellChecker&&) = default;
-    SpellChecker& operator=(SpellChecker&&) = default;
-
-    std::string spell_check(const std::vector<Chunk>& text_lines);
+    std::string spell_check(const Dictionary& dictionary, const std::vector<Chunk>& text_lines);
 
 private:
     static constexpr size_t max_allowed_edits = 2;
@@ -27,8 +19,6 @@ private:
         INSERT,
         DELETE
     };
-
-    const Dictionary& dictionary;
 
     std::vector<std::string> get_corrections(const std::string& word, const Dictionary& dictionary);
     bool can_be_fixed(const std::string& word_1, const std::string& word_2, size_t allowed_edits);

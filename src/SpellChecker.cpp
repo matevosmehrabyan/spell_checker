@@ -76,8 +76,8 @@ std::vector<std::string> SpellChecker::get_corrections(const std::string& word,
 }
 
 
-std::string SpellChecker::spell_check(const std::vector<Chunk>& text_lines) {
-
+std::string SpellChecker::spell_check(const Dictionary& dictionary,
+                                      const std::vector<Chunk>& text_lines) {
     std::string final_output;
 
     for (auto& chunk : text_lines) {
