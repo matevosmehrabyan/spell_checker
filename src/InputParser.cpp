@@ -57,7 +57,7 @@ void InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) cons
             continue;
         }
 
-        size_t chunk_start{0};
+        std::size_t chunk_start{0};
         bool chunk_is_ws = std::isspace(static_cast<unsigned char>(line[0]));
 
         auto append_chunk = [&](std::string& str, bool is_ws) {
@@ -68,7 +68,7 @@ void InputParser::parse_text(std::istream& input, std::vector<Chunk>& dest) cons
             dest.emplace_back(std::move(str), is_ws ? ChunkType::WS : ChunkType::WORD);
         };
 
-        for (size_t i = 0; i < line.size(); ++i) {
+        for (std::size_t i = 0; i < line.size(); ++i) {
             bool cur_is_ws = std::isspace(static_cast<unsigned char>(line[i]));
             if (cur_is_ws != chunk_is_ws) {
 

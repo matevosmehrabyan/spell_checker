@@ -12,7 +12,7 @@ public:
     std::string spell_check(const Dictionary& dictionary, const std::vector<Chunk>& text_lines);
 
 private:
-    static constexpr size_t max_allowed_edits = 2;
+    static constexpr std::size_t max_allowed_edits = 2;
 
     enum class State {
         MATCH,
@@ -21,9 +21,10 @@ private:
     };
 
     std::vector<std::string> get_corrections(const std::string& word, const Dictionary& dictionary);
-    bool can_be_fixed(const std::string& word_1, const std::string& word_2, size_t allowed_edits);
-    bool edit(const std::string& w1, size_t pos1, const std::string& w2, size_t pos2,
-              State prev, size_t edits_allowed);
+    bool is_transformable(const std::string& text_word, const std::string& dict_word,
+                          std::size_t allowed_edits);
+    bool can_transform_from(const std::string& text_word, std::size_t pos1, const std::string& dict_word,
+                            std::size_t pos2, State prev, std::size_t edits_allowed);
 };
 
 

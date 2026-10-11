@@ -5,12 +5,12 @@
 #include "utils.h"
 
 
+bool SpellChecker::can_transform_from(const std::string& text_word, std::size_t pos1,
+                                      const std::string& dict_word, std::size_t pos2,
+                                      State prev, std::size_t edits_allowed) {
 
-bool SpellChecker::edit(const std::string& w1, size_t pos1, const std::string& w2, size_t pos2,
-                        State prev, size_t edits_allowed) {
-
-    while (pos1 < w1.size() && pos2 < w2.size()) {
-        if (w1[pos1] != w2[pos2]) {
+    while (pos1 < text_word.size() && pos2 < dict_word.size()) {
+        if (text_word[pos1] != dict_word[pos2]) {
             break;
         }
 
@@ -19,7 +19,7 @@ bool SpellChecker::edit(const std::string& w1, size_t pos1, const std::string& w
         prev = State::MATCH;
     }
 
-    if (pos1 == w1.size() && pos2 == w2.size()) {
+    if (pos1 == text_word.size() && pos2 == dict_word.size()) {
         return true;
     }
 
@@ -27,14 +27,16 @@ bool SpellChecker::edit(const std::string& w1, size_t pos1, const std::string& w
         return false;
     }
 
-    if (pos1 < w1.size() && prev != State::DELETE
-        && edit(w1, pos1 + 1, w2, pos2, State::DELETE, edits_allowed - 1)) {
+    if (pos1 < text_word.size() && prev != State::DELETE
+        && can_transform_from(text_word, pos1 + 1, dict_word, pos2,
+                              State::DELETE, edits_allowed - 1)) {
 
         return true;
     }
 
-    if (pos2 < w2.size() && prev != State::INSERT
-        && edit(w1, pos1, w2, pos2 + 1, State::INSERT, edits_allowed - 1)) {
+    if (pos2 < dict_word.size() && prev != State::INSERT
+        && can_transform_from(text_word, pos1, dict_word, pos2 + 1,
+                              State::INSERT, edits_allowed - 1)) {
 
         return true;
     }
@@ -43,9 +45,9 @@ bool SpellChecker::edit(const std::string& w1, size_t pos1, const std::string& w
 }
 
 
-bool SpellChecker::can_be_fixed(const std::string& word_1, const std::string& word_2,
-                                size_t allowed_edits) {
-    return edit(word_1, 0, word_2, 0, State::MATCH, allowed_edits);
+bool SpellChecker::is_transformable(const std::string& text_word, const std::string& dict_word,
+                                    std::size_t allowed_edits) {
+    return can_transform_from(text_word, 0, dict_word, 0, State::MATCH, allowed_edits);
 }
 
 
@@ -54,16 +56,16 @@ std::vector<std::string> SpellChecker::get_corrections(const std::string& word,
     std::vector<std::string> corrections;
     auto word_size = word.size();
 
-    auto is_good_candidate = [&word_size](const std::string& candidate, size_t edit_count) {
+    auto is_good_candidate = [&word_size](const std::string& candidate, std::size_t edit_count) {
         auto candidate_word_size = candidate.size();
         auto diff = (word_size > candidate_word_size) ? (word_size - candidate_word_size)
                                                       : (candidate_word_size - word_size);
         return diff <= edit_count;
     };
 
-    for (size_t i = 1; i <= max_allowed_edits; ++i) { // could make one-pass, but code would get messy
+    for (std::size_t i = 1; i <= max_allowed_edits; ++i) { // could make one-pass, but code would get messy
         for (const auto& dict_word : dictionary) {
-            if (is_good_candidate(dict_word, i) && can_be_fixed(word, dict_word, i)) {
+            if (is_good_candidate(dict_word, i) && is_transformable(word, dict_word, i)) {
                 corrections.push_back(dictionary.get(dict_word));
             }
         }
@@ -100,7 +102,7 @@ std::string SpellChecker::spell_check(const Dictionary& dictionary,
 
         if (corrections.size() > 1) {
             final_output += "{";
-            for (size_t i = 0; i < corrections.size(); ++i) {
+            for (std::size_t i = 0; i < corrections.size(); ++i) {
                 final_output += corrections[i];
                 if (i != corrections.size() - 1) {
                     final_output += " ";
