@@ -7,7 +7,7 @@
 
 bool SpellChecker::can_transform_from(const std::string& text_word, std::size_t pos1,
                                       const std::string& dict_word, std::size_t pos2,
-                                      State prev, std::size_t edits_allowed) {
+                                      State prev, std::size_t edits_allowed) const {
 
     if (pos1 == text_word.size() && pos2 == dict_word.size()) {
         return true;
@@ -41,13 +41,13 @@ bool SpellChecker::can_transform_from(const std::string& text_word, std::size_t 
 
 
 bool SpellChecker::is_transformable(const std::string& text_word, const std::string& dict_word,
-                                    std::size_t allowed_edits) {
+                                    std::size_t allowed_edits) const {
     return can_transform_from(text_word, 0, dict_word, 0, State::MATCH, allowed_edits);
 }
 
 
 std::vector<std::string> SpellChecker::get_corrections(const std::string& word,
-                                                       const Dictionary& dictionary) {
+                                                       const Dictionary& dictionary) const {
     std::vector<std::string> corrections;
     auto word_size = word.size();
 
@@ -74,7 +74,7 @@ std::vector<std::string> SpellChecker::get_corrections(const std::string& word,
 
 
 std::string SpellChecker::spell_check(const Dictionary& dictionary,
-                                      const std::vector<Chunk>& text_lines) {
+                                      const std::vector<Chunk>& text_lines) const {
     std::string final_output;
 
     for (auto& chunk : text_lines) {
