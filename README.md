@@ -24,7 +24,7 @@ The input will consist of a `dictionary` followed by a sequence of text lines co
 
 - The `dictionary` and the `text` contain words (strings of letters) of up to 50 characters.
 - The dictionary is in free format, meaning dictionary words may be separated by arbitrary whitespace, including spaces, tabs, and newlines.
-- The `misspelt words`
+- The `misspelt words`.
 - The input is case-insensitive. Comparisons with the dictionary are case-insensitive.
 
 
@@ -62,4 +62,33 @@ Real output example (for the input example above):
 the {rame?} in pain falls
 {main mainly}    on the plain
 was {hints?} plaint
+```
+
+## Requirements
+
+The project requires:
+
+- CMake 3.20+
+- GCC 14+
+
+## Building
+
+Run the following command to build the project:
+
+```
+./build.sh
+```
+
+By default, it builds `Relese` version. To build the `Debug` version, run the following command:
+
+```
+./build.sh Debug
+```
+
+## Testing
+
+Run the following commant to run the tests:
+
+```
+./test.sh
 ```
