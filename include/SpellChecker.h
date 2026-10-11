@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "Chunk.h"
 #include "Dictionary.h"
 
 

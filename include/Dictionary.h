@@ -6,18 +6,6 @@
 #include <unordered_map>
 
 
-enum class ChunkType {
-    WS,
-    WORD
-};
-
-
-struct Chunk {
-    std::string content;
-    ChunkType type{ChunkType::WS};
-};
-
-
 class Dictionary {
 public:
     using const_iterator = std::vector<std::string>::const_iterator;

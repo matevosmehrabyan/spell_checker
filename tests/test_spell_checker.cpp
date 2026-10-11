@@ -1,3 +1,4 @@
+#include "Chunk.h"
 #include "Dictionary.h"
 #include "InputParser.h"
 #include "SpellChecker.h"
