@@ -1,50 +1,62 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <ranges>
 
 #include "SpellChecker.h"
+#include "Constraints.h"
 #include "utils.h"
 
 
-bool SpellChecker::can_transform_from(const std::string& text_word, std::size_t pos1,
-                                      const std::string& dict_word, std::size_t pos2,
-                                      State prev, std::size_t edits_allowed) const {
-    // Could use stack instead of recursion, but in this way it is more understandable.
+std::optional<std::uint8_t> SpellChecker::get_min_edit_count(const std::string& text_word,
+                                                             const std::string& dict_word) const {
 
-    if (pos1 == text_word.size() && pos2 == dict_word.size()) {
-        return true;
+    constexpr std::uint8_t unreachable = constraints::max_allowed_edits + 1;
+
+    std::vector<std::vector<StateInfo>>
+    edit_info(text_word.size() + 1, std::vector<StateInfo>(dict_word.size() + 1,
+                                                           StateInfo{{unreachable,
+                                                                      unreachable,
+                                                                      unreachable
+                                                                    }}));
+    edit_info[0][0][State::MATCH] = 0;
+
+    constexpr std::array<State, 3> states{State::MATCH, State::INSERT, State::DELETE};
+
+    for (std::size_t i = 0; i <= text_word.size(); ++i) {
+        for (std::size_t j = 0; j <= dict_word.size(); ++j) {
+            for(auto prev : states) {
+                std::uint8_t edit_count = edit_info[i][j][prev];
+
+                if (edit_count == unreachable) {
+                    continue;
+                }
+
+                if (i < text_word.size() && j < dict_word.size() && text_word[i] == dict_word[j]) {
+                    std::uint8_t cheap = std::min(edit_info[i + 1][j + 1][State::MATCH], edit_count);
+                    edit_info[i + 1][j + 1][State::MATCH] = cheap;
+                }
+
+                if (i < text_word.size() && prev != State::DELETE) {
+                    std::uint8_t cheap = std::min(edit_info[i + 1][j][State::DELETE],
+                                                  static_cast<uint8_t>(edit_count + 1));
+                    edit_info[i + 1][j][State::DELETE] = cheap;
+                }
+
+                if (j < dict_word.size() && prev != State::INSERT) {
+                    std::uint8_t cheap = std::min(edit_info[i][j + 1][State::INSERT],
+                                                  static_cast<uint8_t>(edit_count + 1));
+                    edit_info[i][j + 1][State::INSERT] = cheap;
+                }
+            }
+        }
     }
 
-    if (pos1 < text_word.size() && pos2 < dict_word.size() && text_word[pos1] == dict_word[pos2]
-        && can_transform_from(text_word, pos1 + 1, dict_word, pos2 + 1, State::MATCH, edits_allowed)) {
-        return true;
+    std::uint8_t min_edits = edit_info[text_word.size()][dict_word.size()].get_min();
+    if (min_edits <= constraints::max_allowed_edits) {
+        return min_edits;
     }
-
-    if (edits_allowed == 0) {
-        return false;
-    }
-
-    if (pos1 < text_word.size() && prev != State::DELETE
-        && can_transform_from(text_word, pos1 + 1, dict_word, pos2,
-                              State::DELETE, edits_allowed - 1)) {
-
-        return true;
-    }
-
-    if (pos2 < dict_word.size() && prev != State::INSERT
-        && can_transform_from(text_word, pos1, dict_word, pos2 + 1,
-                              State::INSERT, edits_allowed - 1)) {
-
-        return true;
-    }
-    
-    return false;
-}
-
-
-bool SpellChecker::is_transformable(const std::string& text_word, const std::string& dict_word,
-                                    std::size_t allowed_edits) const {
-    return can_transform_from(text_word, 0, dict_word, 0, State::MATCH, allowed_edits);
+    return std::nullopt;
 }
 
 
@@ -58,11 +70,11 @@ std::vector<std::string_view> SpellChecker::get_corrections(const std::string& w
         ++letter_map[c - 'a'];
     }
 
-    auto is_good_candidate = [&letter_map, &word_size](const std::string& candidate, std::size_t edit_count) {
+    auto is_good_candidate = [&letter_map, &word_size](const std::string& candidate) {
         auto candidate_word_size = candidate.size();
         auto diff = (word_size > candidate_word_size) ? (word_size - candidate_word_size)
                                                       : (candidate_word_size - word_size);
-        if (diff > edit_count) {
+        if (diff > constraints::max_allowed_edits) {
             return false;
         }
 
@@ -75,17 +87,27 @@ std::vector<std::string_view> SpellChecker::get_corrections(const std::string& w
         for (int8_t letter_count : cpy_letter_map) {
             total_diff += std::abs(letter_count);
         }
-        return total_diff <= edit_count;
+        return total_diff <= constraints::max_allowed_edits;
     };
 
-    for (std::size_t i = 1; i <= max_allowed_edits; ++i) { // could make one-pass, but code would get messy
-        for (const auto& dict_word : dictionary) {
-            if (is_good_candidate(dict_word, i) && is_transformable(word, dict_word, i)) {
-                corrections.push_back(dictionary.get(dict_word));
-            }
+    uint8_t cheapest_edit = constraints::max_allowed_edits;
+    for (const auto& dict_word : dictionary) {
+        if (!is_good_candidate(dict_word)) {
+            continue;
         }
-        if (!corrections.empty()) {
-            break;
+
+        auto edits_count = get_min_edit_count(word, dict_word);
+        if (!edits_count) {
+            continue;
+        }
+
+        if (*edits_count < cheapest_edit) {
+            corrections.clear();
+            cheapest_edit = *edits_count;
+        }
+
+        if (*edits_count == cheapest_edit) {
+            corrections.push_back(dictionary.get(dict_word));
         }
     }
 
@@ -137,4 +159,12 @@ std::string SpellChecker::spell_check(const Dictionary& dictionary,
     }
 
     return final_output;
+}
+
+uint8_t& SpellChecker::StateInfo::operator[](State st) {
+    return info[static_cast<size_t>(st)];
+}
+
+uint8_t SpellChecker::StateInfo::get_min() const {
+    return std::ranges::min(info);
 }

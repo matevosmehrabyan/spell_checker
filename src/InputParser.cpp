@@ -6,11 +6,12 @@
 
 #include "InputParser.h"
 #include "ErrorMessages.h"
+#include "Constraints.h"
 #include "utils.h"
 
 
 void InputParser::validate_word(const std::string& word) const {
-    if (word.size() > max_word_size) {
+    if (word.size() > constraints::max_word_size) {
         throw std::runtime_error(std::format("{}: '{}'", err_msg::large_word, word));
     } else if (!is_word(word)) {
         throw std::runtime_error(std::format("{}: '{}'", err_msg::invalid_word, word));
