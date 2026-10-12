@@ -1,5 +1,6 @@
 #include <vector>
 #include <string>
+#include <array>
 
 #include "SpellChecker.h"
 #include "utils.h"
@@ -51,11 +52,29 @@ std::vector<std::string_view> SpellChecker::get_corrections(const std::string& w
     std::vector<std::string_view> corrections;
     auto word_size = word.size();
 
-    auto is_good_candidate = [&word_size](const std::string& candidate, std::size_t edit_count) {
+    std::array<int8_t, 26> letter_map{};
+    for (auto c : word) {
+        ++letter_map[c - 'a'];
+    }
+
+    auto is_good_candidate = [&letter_map, &word_size](const std::string& candidate, std::size_t edit_count) {
         auto candidate_word_size = candidate.size();
         auto diff = (word_size > candidate_word_size) ? (word_size - candidate_word_size)
                                                       : (candidate_word_size - word_size);
-        return diff <= edit_count;
+        if (diff > edit_count) {
+            return false;
+        }
+
+        auto cpy_letter_map = letter_map;
+        for (auto c : candidate) {
+            --cpy_letter_map[c - 'a'];
+        }
+
+        int total_diff = 0;
+        for (int8_t letter_count : cpy_letter_map) {
+            total_diff += std::abs(letter_count);
+        }
+        return total_diff <= edit_count;
     };
 
     for (std::size_t i = 1; i <= max_allowed_edits; ++i) { // could make one-pass, but code would get messy
@@ -91,7 +110,7 @@ std::string SpellChecker::spell_check(const Dictionary& dictionary,
         }
 
         if (!cache.contains(lowered_word)) {
-            cache[lowered_word] = get_corrections(lowered_word, dictionary);
+            cache.emplace(lowered_word, get_corrections(lowered_word, dictionary));
         }
 
         const auto& corrections = cache[lowered_word];

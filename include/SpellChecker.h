@@ -17,7 +17,7 @@ public:
 private:
     static constexpr std::size_t max_allowed_edits = 2;
 
-    using WordCache = std::unordered_map<std::string_view, std::vector<std::string_view>>;
+    using WordCache = std::unordered_map<std::string, std::vector<std::string_view>>;
 
     enum class State {
         MATCH,
