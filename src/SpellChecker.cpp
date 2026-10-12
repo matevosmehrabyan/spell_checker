@@ -46,9 +46,9 @@ bool SpellChecker::is_transformable(const std::string& text_word, const std::str
 }
 
 
-std::vector<std::string> SpellChecker::get_corrections(const std::string& word,
-                                                       const Dictionary& dictionary) const {
-    std::vector<std::string> corrections;
+std::vector<std::string_view> SpellChecker::get_corrections(const std::string& word,
+                                                            const Dictionary& dictionary) const {
+    std::vector<std::string_view> corrections;
     auto word_size = word.size();
 
     auto is_good_candidate = [&word_size](const std::string& candidate, std::size_t edit_count) {
@@ -76,6 +76,7 @@ std::vector<std::string> SpellChecker::get_corrections(const std::string& word,
 std::string SpellChecker::spell_check(const Dictionary& dictionary,
                                       const std::vector<Chunk>& text_lines) const {
     std::string final_output;
+    WordCache cache;
 
     for (auto& chunk : text_lines) {
         if (chunk.type == ChunkType::WS) {
@@ -89,7 +90,11 @@ std::string SpellChecker::spell_check(const Dictionary& dictionary,
             continue;
         }
 
-        auto corrections = get_corrections(lowered_word, dictionary);
+        if (!cache.contains(lowered_word)) {
+            cache[lowered_word] = get_corrections(lowered_word, dictionary);
+        }
+
+        const auto& corrections = cache[lowered_word];
         if (corrections.empty()) {
             final_output += "{" + chunk.content + "?}";
             continue;
@@ -104,6 +109,7 @@ std::string SpellChecker::spell_check(const Dictionary& dictionary,
                 }
             }
             final_output += "}";
+
             continue;
         }
         

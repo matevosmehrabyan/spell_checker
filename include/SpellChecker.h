@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <string_view>
 
 #include "Chunk.h"
 #include "Dictionary.h"
@@ -15,13 +17,15 @@ public:
 private:
     static constexpr std::size_t max_allowed_edits = 2;
 
+    using WordCache = std::unordered_map<std::string_view, std::vector<std::string_view>>;
+
     enum class State {
         MATCH,
         INSERT,
         DELETE
     };
 
-    std::vector<std::string> get_corrections(const std::string& word, const Dictionary& dictionary) const;
+    std::vector<std::string_view> get_corrections(const std::string& word, const Dictionary& dictionary) const;
     bool is_transformable(const std::string& text_word, const std::string& dict_word,
                           std::size_t allowed_edits) const;
     bool can_transform_from(const std::string& text_word, std::size_t pos1, const std::string& dict_word,
