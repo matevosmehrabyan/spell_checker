@@ -9,6 +9,7 @@
 bool SpellChecker::can_transform_from(const std::string& text_word, std::size_t pos1,
                                       const std::string& dict_word, std::size_t pos2,
                                       State prev, std::size_t edits_allowed) const {
+    // Could use stack instead of recursion, but in this way it is more understandable.
 
     if (pos1 == text_word.size() && pos2 == dict_word.size()) {
         return true;

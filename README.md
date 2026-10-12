@@ -23,8 +23,8 @@ The input will consist of a `dictionary` followed by a sequence of text lines co
 ```
 
 - The `dictionary` and the `text` contain words (strings of letters) of up to 50 characters.
-- The dictionary is in free format, meaning dictionary words may be separated by arbitrary whitespace, including spaces, tabs, and newlines.
-- The `misspelt words`.
+- The `dictionary` and the `text of words` are in free format, meaning dictionary words may be separated by arbitrary whitespace, including spaces, tabs, and newlines.
+- The `text of words` may be empty.
 - The input is case-insensitive. Comparisons with the dictionary are case-insensitive.
 
 
@@ -79,7 +79,7 @@ Run the following command to build the project:
 ./build.sh
 ```
 
-By default, it builds `Relese` version. To build the `Debug` version, run the following command:
+By default, it builds `Release` version. To build the `Debug` version, run the following command:
 
 ```
 ./build.sh Debug
@@ -87,8 +87,18 @@ By default, it builds `Relese` version. To build the `Debug` version, run the fo
 
 ## Testing
 
-Run the following commant to run the tests:
+Run the following command to run the tests:
 
 ```
 ./test.sh
 ```
+
+## Usage
+
+The spell checker can consume both files and stdin:
+```
+./spell_checker input.txt     # read from a file
+./spell_checker < input.txt   # or from standard input
+```
+
+Corrected text goes to standard output. If error happens, it is also printed.
