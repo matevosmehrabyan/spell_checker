@@ -18,7 +18,6 @@ public:
 
 private:
     static constexpr std::string_view section_separator = "===";
-    static constexpr std::size_t max_word_size = 50;
 
     Dictionary dictionary;
     std::vector<Chunk> text_lines;
